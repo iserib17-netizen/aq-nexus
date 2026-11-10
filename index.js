@@ -34,14 +34,15 @@ const commands = [
 
 ].map(command => command.toJSON());
 
-client.once(Events.ClientReady, async (clientReady) => {
+client.once(Events.ClientReady, async (readyClient) => {
 
-    console.log(`✅ Logged in as ${clientReady.user.tag}`);
+    console.log(`✅ Logged in as ${readyClient.user.tag}`);
 
     try {
 
-        const rest = new REST({ version: '10' })
-            .setToken(process.env.DISCORD_TOKEN);
+        const rest = new REST({
+            version: '10'
+        }).setToken(process.env.DISCORD_TOKEN);
 
         await rest.put(
             Routes.applicationGuildCommands(
@@ -53,7 +54,7 @@ client.once(Events.ClientReady, async (clientReady) => {
             }
         );
 
-        console.log('✅ Commands registered');
+        console.log('✅ Slash commands registered');
 
     } catch (error) {
 
@@ -84,7 +85,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
                     .setColor('#f97316')
                     .setTitle('✅ Verify Your Account')
                     .setDescription(
-                        'Welcome to AssetQuarry Development.\n\nVerify yourself to access marketplace features and community resources.\n\nPowered by Batur Systems'
+`Welcome to AssetQuarry Development.
+
+Verify yourself to access marketplace features and community resources.
+
+Powered by Batur Systems`
                     );
 
                 const row = new ActionRowBuilder()
@@ -106,7 +111,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
         if (interaction.isButton()) {
 
-            if (interaction.customId !== 'verify') return;
+            if (interaction.customId !== 'verify') {
+                return;
+            }
 
             const member = interaction.member;
 
@@ -121,4 +128,28 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
             await member.roles.add(VERIFIED_ROLE_ID);
 
-            return interaction
+            return interaction.reply({
+                content: '✅ Verification successful. Welcome to AssetQuarry.',
+                ephemeral: true
+            });
+
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+        if (!interaction.replied) {
+
+            await interaction.reply({
+                content: '❌ Something went wrong.',
+                ephemeral: true
+            });
+
+        }
+
+    }
+
+});
+
+client.login(process.env.DISCORD_TOKEN);
